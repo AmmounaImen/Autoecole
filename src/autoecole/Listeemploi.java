@@ -21,7 +21,10 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 
-
+/**
+ * 
+ * @author Imen
+ */
 public class Listeemploi extends javax.swing.JInternalFrame {
 
     

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package autoecole;
 
 import classes.Conex;
@@ -11,63 +6,59 @@ import classes.seance;
 import classes.tablecandidatModel_1;
 import classes.tableseanceModel_1;
 import com.jtattoo.plaf.aluminium.AluminiumLookAndFeel;
-import com.jtattoo.plaf.noire.NoireLookAndFeel;
-import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.control.SelectionMode;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.JTableHeader;
 
 /**
+ * claase pour afficher les satistiques dans un panneau
  *
  * @author Imen
+ * @version1.1
  */
 public class satistiPanel extends javax.swing.JPanel {
-    private Connection connexion=null;
-    private String req_heur="select * from candidat where type_contrat =?";
-    private String req_heur_seance="select * from seance where id_candidat =?";
-    private tablecandidatModel_1 model,model2;
-    private tableseanceModel_1 seancemod1,seancemod2;
-    
+
+    /* instance connection pour gerer la connexion au db */
+    private Connection connexion = null;
+    /* requete sql pour selectionner le type contart dans le table heure */
+    private String req_heur = "select * from candidat where type_contrat =?";
+    /* requete sql pour affihcer les seances d'un type de contrat */
+    private String req_heur_seance = "select * from seance where id_candidat =?";
+    /* deux models du tableau personalise */
+    private tablecandidatModel_1 model, model2;
+    private tableseanceModel_1 seancemod1, seancemod2;
 
     /**
-     * Creates new form satistiPanel
+     * Construire un nouveau objet <code>satistiPanel</code> initialiser les
+     * composants du Gui
      */
     public satistiPanel() {
         initComponents();
         buildGui();
         initevet();
     }
-private void  init(){
+
+    /**
+     * initialiser le connexion et construire les modeles
+     *
+     */
+    private void init() {
         try {
-            connexion=new Conex().getConn();
-            model=new tablecandidatModel_1();
-            model2=new tablecandidatModel_1();
-            seancemod1=new tableseanceModel_1();
-            seancemod2=new tableseanceModel_1();
-        
+            connexion = new Conex().getConn();
+            model = new tablecandidatModel_1();
+            model2 = new tablecandidatModel_1();
+            seancemod1 = new tableseanceModel_1();
+            seancemod2 = new tableseanceModel_1();
+
         } catch (Exception ex) {
             Logger.getLogger(satistiPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -77,153 +68,154 @@ private void  init(){
         } catch (UnsupportedLookAndFeelException ex) {
             Logger.getLogger(frmMenu.class.getName()).log(Level.SEVERE, null, ex);
         }
-}
-private void buildGui(){
-    init();
-    
+    }
+
+    /**
+     * construire les tableaux et les rempli par des requetes du bd
+     */
+    private void buildGui() {
+        init();
+
         try {
             model.clearModel();
             model2.clearModel();
-            PreparedStatement pre2=connexion.prepareStatement(req_heur);
-            pre2.setString(1,"Forfitaire");
-            ResultSet res2=pre2.executeQuery();
-            while(res2.next()){
-                model2.filldatafromDb(new candidat(res2.getInt("id_candidat"), 
-                        res2.getString("reference_candidat"),res2.getString("nom_candidat")
-                                ,res2.getString("cin_candidat")));
+            PreparedStatement pre2 = connexion.prepareStatement(req_heur);
+            pre2.setString(1, "Forfitaire");
+            ResultSet res2 = pre2.executeQuery();
+            while (res2.next()) {
+                model2.filldatafromDb(new candidat(res2.getInt("id_candidat"),
+                        res2.getString("reference_candidat"), res2.getString("nom_candidat"), res2.getString("cin_candidat")));
             }
-            PreparedStatement pre=connexion.prepareStatement(req_heur);
-            pre.setString(1,"Contractuelle");
-            ResultSet res=pre.executeQuery();
-            while(res.next()){
-                model.filldatafromDb(new candidat(res.getInt("id_candidat"), 
-                        res.getString("reference_candidat"),res.getString("nom_candidat")
-                                ,res.getString("cin_candidat")));
+            PreparedStatement pre = connexion.prepareStatement(req_heur);
+            pre.setString(1, "Contractuelle");
+            ResultSet res = pre.executeQuery();
+            while (res.next()) {
+                model.filldatafromDb(new candidat(res.getInt("id_candidat"),
+                        res.getString("reference_candidat"), res.getString("nom_candidat"), res.getString("cin_candidat")));
             }
         } catch (SQLException ex) {
             Logger.getLogger(satistiPanel.class.getName()).log(Level.SEVERE, null, ex);
-        }  
+        }
         contracttable.setModel(model);
         forftable.setModel(model2);
         seancecontracttable.setModel(seancemod1);
         forfaitseancetable.setModel(seancemod2);
-}
-private void initevet(){
-    contracttable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    forftable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-   
-    contracttable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-         
-    getSeances();
-}});
-forftable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-        @Override
-        public void valueChanged(ListSelectionEvent e) {
-         
-    getSeancesForForf();
-}});
+    }
 
-}
-private void getSeances(){
-    if(connexion!=null){
-        PreparedStatement prepareStatement=null;
-        seancemod1.clearmodel();
-        int xid=Integer.parseInt(contracttable.getValueAt(contracttable.getSelectedRow(), 0).toString());
-        try{
-        
-           prepareStatement = connexion.prepareStatement(req_heur_seance);
-            prepareStatement.setInt(1, xid);
-            System.out.println(xid);
-       
-            ResultSet res=prepareStatement.executeQuery();
-            
-         while(res.next()){
-                
-               // boolean d=res.getInt("presense_seance")==0 ?false:true;
-            
-             
-                seancemod1.addcandidat(new seance(res.getDate("date_seance"), 
-                        res.getTime("heure_seance"), res.getInt("duree_seance"),false,
-                        res.getString("type_seance")));
-             
-                
+    /**
+     * ajouter les evt du selection sur les tableaux (contracttable & forftable)
+     *
+     */
+    private void initevet() {
+        contracttable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        forftable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        contracttable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+
+                getSeances();
             }
-            
-            System.out.println("finish");
-            System.out.println(seancemod1.getLis_cand().size());
-           
-           seancecontracttable.repaint();
-           contractpanel.repaint();
-           
-        
-        }
-        
-        
-        catch(Exception sq){
-            
-        }
-        finally{
-            try {
-                if(!prepareStatement.isClosed())prepareStatement.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(satistiPanel.class.getName()).log(Level.SEVERE, null, ex);
+        });
+        forftable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+
+                getSeancesForForf();
             }
-        }
-       
+        });
+
     }
-    
-}
-private void getSeancesForForf(){
-    if(connexion!=null){
-        PreparedStatement prepareStatement=null;
-        seancemod2.clearmodel();
-        int xid=Integer.parseInt(forftable.getValueAt(forftable.getSelectedRow(), 0).toString());
-        try{
-        
-           prepareStatement = connexion.prepareStatement(req_heur_seance);
-            prepareStatement.setInt(1, xid);
-            System.out.println(xid);
-       
-            ResultSet res=prepareStatement.executeQuery();
-          
-         while(res.next()){
-                
-               // boolean d=res.getInt("presense_seance")==0 ?false:true;
-            
-             
-                seancemod2.addcandidat(new seance(res.getDate("date_seance"), 
-                        res.getTime("heure_seance"), res.getInt("duree_seance"),false,
-                        res.getString("type_seance")));
-             
-                
-            }
-            
-            System.out.println("finish");
-            System.out.println(seancemod2.getLis_cand().size());
-           
-           forfaitseancetable.repaint();
-           forftable.repaint();
-           
-        
-        }
-        
-        
-        catch(Exception sq){
-            
-        }
-        finally{
+
+    /**
+     * methode responsable sur l'afficher du tableaux seances du table
+     * contractuelle
+     *
+     */
+    private void getSeances() {
+        if (connexion != null) {
+            PreparedStatement prepareStatement = null;
+            seancemod1.clearmodel();
+            int xid = Integer.parseInt(contracttable.getValueAt(contracttable.getSelectedRow(), 0).toString());
             try {
-                if(!prepareStatement.isClosed())prepareStatement.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(satistiPanel.class.getName()).log(Level.SEVERE, null, ex);
+
+                prepareStatement = connexion.prepareStatement(req_heur_seance);
+                prepareStatement.setInt(1, xid);
+                System.out.println(xid);
+
+                ResultSet res = prepareStatement.executeQuery();
+
+                while (res.next()) {
+
+                    // boolean d=res.getInt("presense_seance")==0 ?false:true;
+                    seancemod1.addcandidat(new seance(res.getDate("date_seance"),
+                            res.getTime("heure_seance"), res.getInt("duree_seance"), false,
+                            res.getString("type_seance")));
+
+                }
+
+                System.out.println("finish");
+                System.out.println(seancemod1.getLis_cand().size());
+
+                seancecontracttable.repaint();
+                contractpanel.repaint();
+
+            } catch (Exception sq) {
+
+            } finally {
+                try {
+                    if (!prepareStatement.isClosed()) {
+                        prepareStatement.close();
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(satistiPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
+
         }
-       
+
     }
-    
-}
+
+    /**
+     * methode responsable sur l'afficher du tableaux seances du table
+     * forfitaire
+     *
+     */
+    private void getSeancesForForf() {
+        if (connexion != null) {
+            PreparedStatement prepareStatement = null;
+            seancemod2.clearmodel();
+            int xid = Integer.parseInt(forftable.getValueAt(forftable.getSelectedRow(), 0).toString());
+            try {
+                prepareStatement = connexion.prepareStatement(req_heur_seance);
+                prepareStatement.setInt(1, xid);
+                System.out.println(xid);
+                ResultSet res = prepareStatement.executeQuery();
+                while (res.next()) {
+                    seancemod2.addcandidat(new seance(res.getDate("date_seance"),
+                            res.getTime("heure_seance"), res.getInt("duree_seance"), false,
+                            res.getString("type_seance")));
+                }
+
+                System.out.println("finish");
+                System.out.println(seancemod2.getLis_cand().size());
+                forfaitseancetable.repaint();
+                forftable.repaint();
+            } catch (Exception sq) {
+
+            } finally {
+                try {
+                    if (!prepareStatement.isClosed()) {
+                        prepareStatement.close();
+                    }
+                } catch (SQLException ex) {
+                    Logger.getLogger(satistiPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+        }
+
+    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
